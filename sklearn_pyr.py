@@ -87,27 +87,46 @@ tts<-function(X,y) {
 idhtml('Data')
 idhtml('internal datasets',font_size=24)
 
+conn<-file("load_sklearn_data.R")
+writeLines("
+print('Boston Data =>>>')
 boston<-slds$load_boston()
+X1<-boston$data; y1<-boston$target
+print(paste0(c('dim: features -',list(dim(X1)),
+               ', target -', dim(y1)),
+             collapse=' '))
 dfboston<-data.frame(boston$data)
 colnames(dfboston)<-boston$feature_names
 dfboston['MEDV']<-boston$target
+
+print('Digit Data =>>>')
 digits<-slds$load_digits()
-X1<-boston$data; y1<-boston$target
-head(dfboston); c(dim(X1),dim(y1))
+X2<-digits$data; y2<-digits$target
+print(paste0(c('dim: features -',list(dim(X2)),
+               ', target -', dim(y2)),
+             collapse=' '))
+",conn)
+
+source("load_sklearn_data.R")
+
 pl$figure(figsize=c(10,10))
 sn$pairplot(dfboston,kind="reg",markers='^')
 pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
 options(repr.plot.width=10,repr.plot.height=10)
-par(mar=c(0,0,0,0)); plot(im,axes=F)
+par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
+head(dfboston)
 
-digits<-slds$load_digits()
-X2<-digits$data; y2<-digits$target
 par(mar=c(1,1,1,1)); n<-sample(dim(X2)[1],1)
 im<-array_reshape(X2[n,]/max(X2),c(8,8))
 options(repr.plot.width=3,repr.plot.height=3)
-plot(as.raster(im)); c(dim(X2),dim(y2))
+plot(as.raster(im));
 
 idhtml('artificial datasets',font_size=24)
+
+conn<-file("create_sklearn_data.R")
+writeLines("
+ip<-function(x) {as.integer(x)}
+N<-ip(5000)
 
 # 5000x5 matrix with 5 features (4 responsible for targets), 
 # 1 target, 0.97 - the bias factor
@@ -116,7 +135,10 @@ nX3<-np$array(artreg[1]); ny3<-np$array(artreg[2])
 X3<-array_reshape(nX3,c(N,5)); y3<-array_reshape(ny3,N)
 options(repr.plot.width=10,repr.plot.height=5)
 matplot(y3[1:500],X3[1:500,1:5],type='p')
-c(dim(X3),dim(y3))
+print('Make Regression =>>>')
+print(paste0(c('dim: features -',list(dim(X3)),
+               ', target -',dim(y3)),
+             collapse=' '))
 
 ce<-array_reshape(c(1,1,-1,-1,1,-1,-1,1),c(4,2))
 artclu<-slds$make_blobs(n_samples=N,cluster_std=.5,centers=ce)
@@ -129,8 +151,11 @@ pl$scatter(c(1,-1,1,-1),c(1,-1,-1,1),
            c='black',marker='*',s=150)
 pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
 options(repr.plot.width=10,repr.plot.height=5)
-par(mar=c(0,0,0,0)); plot(im,axes=F)
-c(dim(X4),dim(y4))
+par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
+print('Make Blobs =>>>')
+print(paste0(c('dim: features -',list(dim(X4)),
+               ', target -',dim(y4)),
+             collapse=' '))
 
 artmlc<-slds$make_multilabel_classification(n_classes=ip(3),
                                             n_samples=N,
@@ -144,11 +169,19 @@ for (i in 1:3) {
                marker=m[i],alpha=a[i],cmap=pl$cm$bwr)}
 pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
 options(repr.plot.width=10,repr.plot.height=5)
-par(mar=c(0,0,0,0)); plot(im,axes=F)
-c(dim(X5),dim(y5))
+par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
+print('Make Multilabel Classification =>>>')
+print(paste0(c('dim: features -',list(dim(X5)),
+               ', target -',list(dim(y5))),
+             collapse=' '))
+",conn)
+
+source("create_sklearn_data.R")
 
 idhtml('external datasets',font_size=24)
 
+conn<-file("load_external_data.R")
+writeLines("
 mnist<-ks$datasets$mnist$load_data()
 train6<-mnist[[1]]; test6<-mnist[[2]]
 X_train6<-array_reshape(np$array(train6[[1]]),c(60000,784))
@@ -157,10 +190,17 @@ y_train6<-np$array(train6[[2]])
 X_test6<-array_reshape(np$array(test6[[1]]),c(10000,784))
 X_test6<-X_test6/max(X_test6)
 y_test6<-np$array(test6[[2]])
-c(dim(X_train6),dim(y_train6),dim(X_test6),dim(y_test6))
 im<-array_reshape(X_train6[n,],c(28,28))
 options(repr.plot.width=4,repr.plot.height=4)
 plot(as.raster(im))
+print('MNIST Keras =>>>')
+print(paste0(c(
+    'train features -',list(dim(X_train6)),
+    ', train target -',list(dim(y_train6))),
+    collapse=' '))
+print(paste0(c('test features -',list(dim(X_test6)),
+    ', test target -',list(dim(y_test6))),
+    collapse=' '))
 
 fpath<-'../input/classification-of-handwritten-letters/'
 fname<-'LetterColorImages_123.h5'
@@ -169,10 +209,19 @@ keys<-list(f$keys())
 letters<-'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 X7<-array_reshape(np$array(f['images'])/255,c(-1,32*32*3))
 y7<-np$array(f['labels'])
-keys[[1]]; c(dim(X7),dim(y7))
 im<-array_reshape(X7[n,],c(32,32,3))
 options(repr.plot.width=4,repr.plot.height=4)
-plot(as.raster(im)); substring(letters,y7[n],y7[n])
+plot(as.raster(im))
+print('Letters Kaggle =>>>')
+print(paste0(c('keys: ',keys)))
+print(paste0(
+    c('dim: features -',list(dim(X7)),
+      ', target -',list(dim(y7))),
+    collapse=' '))
+print(substring(letters,y7[n],y7[n]))
+",conn)
+
+source("load_external_data.R")
 
 idhtml('Extraction and Preprocessing')
 
