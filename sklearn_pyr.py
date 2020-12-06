@@ -7,15 +7,58 @@ Original file is located at
     https://colab.research.google.com/drive/1HpIXlLna_oE83mqLQfhGi4KyqsPtBB6q
 
 [`Python` Version](https://www.kaggle.com/olgabelitskaya/sklearn-cookbook)
-<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'> Packages, Helpful Functions, and Styling</h1>
 """
 
-library(IRdisplay); library(reticulate)
-library(imager); library(ggplot2)
-pl<-c('matplotlib','pandas','sklearn','seaborn','h5py')
+conn<-file("widhtml.R")
+writeLines("
+vfont_family<-c('Smokum','Akronim','Wallpoet',
+                'Orbitron','Ewert','Lobster',
+                'Roboto','Miss Fajardose','Monoton')
+vfont_size<-c(8,10,12,14,16,18,20,22,24,26,28,30,32)
+vfont_color<-c('#ff36ff','#ff3636','#3636ff',
+               '#36ffff','#ff9636','#ff3696')
+
+idhtml<-function(string,font_color=vfont_color[6],
+                 font_family=vfont_family[2],
+                 font_size=vfont_size[11]) {
+    randi<-sample(1:9999999,1)
+    s<-sapply(34,intToUtf8)
+    html_str<-c(
+      '<style>@import ',s,'https://fonts.',
+      'googleapis.com/css?family=',font_family,
+      s,'; #rh1',randi,' {font-family:',font_family,
+      '; color:',font_color,'; font-size:',font_size,
+      'px; text-shadow:3px 3px 3px #aaa;}</style>',
+      '<h1 id=',s,'rh1',randi,s,';>',string,'</h1>')
+    str<-paste0(html_str,collapse='')
+    IRdisplay::display_html(str)}
+
+ipyhtml<-function(font_color=vfont_color[6],
+                 font_family=vfont_family[7],
+                 font_size=vfont_size[2]) {
+    html_str<-c(
+        '<style>span {font-family:',font_family,
+        '; color:black; text-shadow:3px 3px 3px #aaa;} ',
+        'div.output_area pre{font-family:',
+        '; font-size',font_size,'px; color:',
+        font_color,';}</style>')
+    str<-paste0(html_str,collapse='')
+    IRdisplay::display_html(str)}  
+",conn)
+
+source('widhtml.R'); ipyhtml()
+idhtml('Packages, Helpful Functions, and Styling')
+
+conn<-file("rpy_sklearn.R")
+writeLines("
+library(reticulate); library(imager)
+library(IRdisplay); library(ggplot2)
+pl<-c('matplotlib','pandas','sklearn',
+      'seaborn','h5py','scikit-image')
 for (p in pl) {py_install(p)} 
 np<-import('numpy'); pd<-import('pandas')
-sl<-import('sklearn'); ks<-import('keras'); h5<-import('h5py')
+sl<-import('sklearn'); sm<-import('skimage')
+ks<-import('keras'); h5<-import('h5py')
 pl<-import('pylab'); sn<-import('seaborn')
 slds<-import('sklearn.datasets')
 slpp<-import('sklearn.preprocessing')
@@ -27,12 +70,9 @@ sllm<-import('sklearn.linear_model')
 slen<-import('sklearn.ensemble')
 slne<-import('sklearn.neighbors')
 slcl<-import('sklearn.cluster')
+",conn)
 
-display_html("<style>
-@import url('https://fonts.googleapis.com/css?family=Ewert|Roboto&effect=3d');
-span {font-family:Roboto; color:black; text-shadow:3px 3px 3px #aaa;}  
-div.output_area pre{font-family:Roboto; font-size:120%; color:#ff355e;}      
-</style>")
+source('rpy_sklearn.R')
 
 ip<-function(x) {as.integer(x)}
 N<-ip(5000)
@@ -40,12 +80,12 @@ ohe<-function(x) {
     x<-array_reshape(x,c(-1,1))
     tohe<-slpp$OneHotEncoder(categories='auto')
     as.matrix(tohe$fit(x)$transform(x)) }
-tts<-function(X,y) {slms$train_test_split(X,y,test_size=.2,
-                                          random_state=ip(1))}
+tts<-function(X,y) {
+    slms$train_test_split(X,y,test_size=.2,
+                          random_state=ip(1))}
 
-"""<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'> Data</h1>
-internal datasets
-"""
+idhtml('Data')
+idhtml('internal datasets',font_size=24)
 
 boston<-slds$load_boston()
 dfboston<-data.frame(boston$data)
@@ -67,7 +107,7 @@ im<-array_reshape(X2[n,]/max(X2),c(8,8))
 options(repr.plot.width=3,repr.plot.height=3)
 plot(as.raster(im)); c(dim(X2),dim(y2))
 
-"""artificial datasets"""
+idhtml('artificial datasets',font_size=24)
 
 # 5000x5 matrix with 5 features (4 responsible for targets), 
 # 1 target, 0.97 - the bias factor
@@ -107,7 +147,7 @@ options(repr.plot.width=10,repr.plot.height=5)
 par(mar=c(0,0,0,0)); plot(im,axes=F)
 c(dim(X5),dim(y5))
 
-"""external datasets"""
+idhtml('external datasets',font_size=24)
 
 mnist<-ks$datasets$mnist$load_data()
 train6<-mnist[[1]]; test6<-mnist[[2]]
@@ -134,7 +174,7 @@ im<-array_reshape(X7[n,],c(32,32,3))
 options(repr.plot.width=4,repr.plot.height=4)
 plot(as.raster(im)); substring(letters,y7[n],y7[n])
 
-"""<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'>Extraction and Preprocessing</h1>"""
+idhtml('Extraction and Preprocessing')
 
 arr1<-c('Hanoi','Frankfurt','Houston',
         'Riyadh','Barcelona','Ankara')
@@ -153,14 +193,20 @@ ggplot(tmp,aes(x=city,y=temperature,color=as.factor(temperature)))+
 str(tmp); str(tmp2)
 
 corpus=c('Have you already set your goals for the New Year?',
-         'Do you want to lose ten kilos, run a marathon or speak fluent English?', 
+         paste0('Do you want to lose ten kilos, ',
+                'run a marathon or speak fluent English?'), 
          'Some experts believe that you need systems, not goals.',
          'A system is something you do on a regular basis.',
-         'This means focusing on what you can control (your actions) rather than what you can’t.',
+         paste0('This means focusing on what you can control ',
+                '(your actions) rather than what you can’t.'),
          'For example, do not focus on losing ten kilos.',
-         'Focus on shopping for healthy food and cooking something light every day.',
-         'Do not focus on the marathon.','Focus on the training schedule.',
-         'Invent a system to improve your English, one step at a time.','Good luck!')
+         paste0('Focus on shopping for healthy food and ',
+                'cooking something light every day.'),
+         'Do not focus on the marathon.',
+         'Focus on the training schedule.',
+         paste0('Invent a system to improve your English, ',
+                'one step at a time.'),
+         'Good luck!')
 cv<-slfe$text$CountVectorizer(max_df=100)
 corpus_features<-cv$fit_transform(np$array(corpus,dtype='object'))
 options(repr.plot.width=10,repr.plot.height=7)
@@ -194,7 +240,7 @@ X_train7<-tts(X7,y7)[[1]]; X_test7<-tts(X7,y7)[[2]]
 y_train7<-tts(X7,y7)[[3]]; y_test7<-tts(X7,y7)[[4]]
 c(dim(X_train7),dim(y_train7),dim(X_test7),dim(y_test7))
 
-"""<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'> Classification</h1>"""
+idhtml('Classification')
 
 clf<-slne$KNeighborsClassifier()
 clf$fit(X_train2,y_train2)    
@@ -221,7 +267,7 @@ acc_clf_train7<-slme$accuracy_score(y_train7,y_clf_train7)
 acc_clf_test7<-slme$accuracy_score(y_test7,y_clf_test7)
 c(acc_clf_train7,acc_clf_test7)
 
-"""<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'> Regression</h1>"""
+idhtml('Regression')
 
 reg1<-slen$GradientBoostingRegressor()
 reg1$fit(X_train1,y_train1)    
@@ -250,11 +296,13 @@ pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
 options(repr.plot.width=10,repr.plot.height=5)
 par(mar=c(0,0,0,0)); plot(im,axes=F)
 
-"""<h1 class='font-effect-3d' style='font-family:Ewert; color:#ff355e'> Interactive Py Practice</h1>"""
-
-shtml<-'<div style="border:10px double white; 
-                    width:550px; height:950px; overflow:auto; 
-                    padding:10px; background-color:ghostwhite">
-<iframe src="https://olgabelitskaya.github.io/sklearn_cookbook_sagecells.html" 
-        width="510" height="920"/></div>'
-display_html(shtml)
+idhtml('Interactive Py Practice')
+url<-paste0('https://olgabelitskaya.github.io/',
+            'sklearn_cookbook_sagecells.html')
+html_str<-c('<div style="border:10px double white; ',
+    'width:680px; height:630px; overflow:auto; ',
+    'padding:5px; background-color:ghostwhite">',
+    '<iframe src="',url,
+    '" width="650" height="600"/></div>')
+html_str<-(paste0(html_str,collapse=''))
+IRdisplay::display_html(html_str)
