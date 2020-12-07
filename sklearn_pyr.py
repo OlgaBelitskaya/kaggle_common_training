@@ -233,22 +233,31 @@ source("load_external_data.R")
 
 idhtml('Extraction and Preprocessing')
 
+conn<-file("dataframe_from_vector.R")
+writeLines("
 arr1<-c('Hanoi','Frankfurt','Houston',
         'Riyadh','Barcelona','Ankara')
 arr2<-c(33,16,28,38,17,27)
-tmp<-pd$DataFrame(np$nan,index=1:6,
-                  columns=c('city','temperature'))
+tmp<-pd$DataFrame(
+    np$nan,index=1:6,columns=c('city','temperature'))
 tmp$city<-arr1; tmp$temperature<-as.integer(arr2)
 tmp2<-data.frame(cbind(arr1,arr2))
 colnames(tmp2)<-c('city','temperature')
-tmp2<-transform(tmp2,city=as.character(city),
-                temperature=as.integer(as.character(temperature)))
-options(repr.plot.width=10,repr.plot.height=4)
-ggplot(tmp,aes(x=city,y=temperature,color=as.factor(temperature)))+
-    scale_color_brewer(palette="Reds")+
-    geom_point()+theme_bw()
-str(tmp); str(tmp2)
+tmp2<-transform(
+    tmp2,city=as.character(city),
+    temperature=as.integer(as.character(temperature)))
+options(repr.plot.width=10,repr.plot.height=5)
+p<-ggplot(tmp,aes(x=city,y=temperature,
+                  color=as.character(temperature)))+
+    scale_color_brewer(palette='Reds',name='°C')+
+    geom_point(size=5)+theme_bw()
+cat(str(tmp)); cat(str(tmp2)); print(p)
+",conn)
 
+source("dataframe_from_vector.R")
+
+conn<-file("sklearn_vectorizer.R")
+writeLines("
 corpus=c('Have you already set your goals for the New Year?',
          paste0('Do you want to lose ten kilos, ',
                 'run a marathon or speak fluent English?'), 
@@ -265,27 +274,43 @@ corpus=c('Have you already set your goals for the New Year?',
                 'one step at a time.'),
          'Good luck!')
 cv<-slfe$text$CountVectorizer(max_df=100)
-corpus_features<-cv$fit_transform(np$array(corpus,dtype='object'))
+corpus_features<-cv$fit_transform(
+    np$array(corpus,dtype='object'))
 options(repr.plot.width=10,repr.plot.height=7)
-for (i in 1:11){matplot(corpus_features[i,]+3*(i-1),xlab='',ylab='',
-                        pch='*',ylim=c(0,33),col=i); par(new=TRUE)}
-ca<-cv$build_analyzer(); ca(corpus[1])
+for (i in 1:11){
+    matplot(corpus_features[i,]+3*(i-1),
+            xlab='',ylab='',pch='*',ylim=c(0,33),col=i,
+            main='The Words` Occurrence in Sentences'); 
+    par(new=TRUE)}
+ca<-cv$build_analyzer(); print(ca(corpus[1]))
+",conn)
 
-m<-sample(1:1700,1)
-cy2<-ohe(y2); c(cy2[m,],y2[m])
-cy_train6<-ohe(y_train6); c(cy_train6[m,],y_train6[m])
-cy_test6<-ohe(y_test6); c(cy_test6[m,],y_test6[m])
-cy7<-ohe(y7); c(cy7[m,],y7[m])
+source("sklearn_vectorizer.R")
 
+conn<-file("sklearn_imputer.R")
+writeLines("
 X<-np$random$randn(ip(100))
 ch<-np$random$choice(ip(100),ip(20))
 X[ch]<-np$nan
 X<-np$reshape(X,c(ip(100),ip(1)))
 mean_imp<-slim$SimpleImputer(strategy='mean')
 median_imp<-slim$SimpleImputer(strategy='median')
-dfX<-pd$DataFrame(cbind(X,mean_imp$fit(X)$transform(X),
-                        median_imp$fit(X)$transform(X)))
-matplot(dfX,type='p')
+dfX<-pd$DataFrame(
+    cbind(X,mean_imp$fit(X)$transform(X),
+          median_imp$fit(X)$transform(X)))
+options(repr.plot.width=10,repr.plot.height=7)
+matplot(dfX,type='p',main='Sklearn Simple Imputer')
+grid() 
+legend(80,2,c('1->X','2->X mean','3->X median'),bty='n')
+",conn)
+
+source("sklearn_imputer.R")
+
+m<-sample(1:1700,1)
+cy2<-ohe(y2); c(cy2[m,],y2[m])
+cy_train6<-ohe(y_train6); c(cy_train6[m,],y_train6[m])
+cy_test6<-ohe(y_test6); c(cy_test6[m,],y_test6[m])
+cy7<-ohe(y7); c(cy7[m,],y7[m])
 
 X_train1<-tts(X1,y1)[[1]]; X_test1<-tts(X1,y1)[[2]]
 y_train1<-tts(X1,y1)[[3]]; y_test1<-tts(X1,y1)[[4]]
