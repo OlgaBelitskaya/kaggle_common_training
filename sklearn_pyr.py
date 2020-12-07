@@ -89,37 +89,45 @@ idhtml('internal datasets',font_size=24)
 
 conn<-file("load_sklearn_data.R")
 writeLines("
-print('Boston Data =>>>')
 boston<-slds$load_boston()
 X1<-boston$data; y1<-boston$target
-print(paste0(c('dim: features -',list(dim(X1)),
-               ', target -', dim(y1)),
-             collapse=' '))
 dfboston<-data.frame(boston$data)
 colnames(dfboston)<-boston$feature_names
 dfboston['MEDV']<-boston$target
-
-print('Digit Data =>>>')
-digits<-slds$load_digits()
-X2<-digits$data; y2<-digits$target
-print(paste0(c('dim: features -',list(dim(X2)),
-               ', target -', dim(y2)),
+ip<-function(x) {as.integer(x)}
+fig<-pl$figure(figsize=c(10,5))
+ax<-fig$add_subplot('111')
+sn$histplot(dfboston['MEDV'],stat='density',ax=ax,
+            kde='True',bins=ip(30),
+            edgecolor='#ff3696',alpha=.1)
+pd$plotting$table(ax,head(dfboston,3),loc='top')
+pl$tight_layout()
+pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
+options(repr.plot.width=10,repr.plot.height=5)
+par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
+print('Boston Data =>>>')
+print(paste0(c('dim: features -',list(dim(X1)),
+               ', target -',list(dim(y1))),
              collapse=' '))
 ",conn)
 
 source("load_sklearn_data.R")
 
-pl$figure(figsize=c(10,10))
-sn$pairplot(dfboston,kind="reg",markers='^')
-pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
-options(repr.plot.width=10,repr.plot.height=10)
-par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
-head(dfboston)
-
-par(mar=c(1,1,1,1)); n<-sample(dim(X2)[1],1)
+conn<-file("load_sklearn_data2.R")
+writeLines("
+digits<-slds$load_digits()
+X2<-digits$data; y2<-digits$target
+print('Digit Data =>>>')
+print(paste0(c('dim: features -',list(dim(X2)),
+               ', target -',list(dim(y2))),
+             collapse=' '))
+par(mar=c(0,0,0,0)); n<-sample(dim(X2)[1],1)
 im<-array_reshape(X2[n,]/max(X2),c(8,8))
 options(repr.plot.width=3,repr.plot.height=3)
-plot(as.raster(im));
+plot(as.raster(im))
+",conn)
+
+source("load_sklearn_data2.R")
 
 idhtml('artificial datasets',font_size=24)
 
@@ -137,7 +145,7 @@ options(repr.plot.width=10,repr.plot.height=5)
 matplot(y3[1:500],X3[1:500,1:5],type='p')
 print('Make Regression =>>>')
 print(paste0(c('dim: features -',list(dim(X3)),
-               ', target -',dim(y3)),
+               ', target -',list(dim(y3))),
              collapse=' '))
 
 ce<-array_reshape(c(1,1,-1,-1,1,-1,-1,1),c(4,2))
@@ -154,7 +162,7 @@ options(repr.plot.width=10,repr.plot.height=5)
 par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
 print('Make Blobs =>>>')
 print(paste0(c('dim: features -',list(dim(X4)),
-               ', target -',dim(y4)),
+               ', target -',list(dim(y4))),
              collapse=' '))
 
 artmlc<-slds$make_multilabel_classification(n_classes=ip(3),
@@ -191,8 +199,8 @@ X_test6<-array_reshape(np$array(test6[[1]]),c(10000,784))
 X_test6<-X_test6/max(X_test6)
 y_test6<-np$array(test6[[2]])
 im<-array_reshape(X_train6[n,],c(28,28))
-options(repr.plot.width=4,repr.plot.height=4)
-plot(as.raster(im))
+options(repr.plot.width=3,repr.plot.height=3)
+par(mar=c(0,0,0,0)); plot(as.raster(im))
 print('MNIST Keras =>>>')
 print(paste0(c(
     'train features -',list(dim(X_train6)),
@@ -210,8 +218,8 @@ letters<-'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 X7<-array_reshape(np$array(f['images'])/255,c(-1,32*32*3))
 y7<-np$array(f['labels'])
 im<-array_reshape(X7[n,],c(32,32,3))
-options(repr.plot.width=4,repr.plot.height=4)
-plot(as.raster(im))
+options(repr.plot.width=3,repr.plot.height=3)
+par(mar=c(0,0,0,0)); plot(as.raster(im))
 print('Letters Kaggle =>>>')
 print(paste0(c('keys: ',keys)))
 print(paste0(
