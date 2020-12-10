@@ -74,16 +74,6 @@ slcl<-import('sklearn.cluster')
 
 source('rpy_sklearn.R')
 
-ip<-function(x) {as.integer(x)}
-N<-ip(5000)
-ohe<-function(x) {
-    x<-array_reshape(x,c(-1,1))
-    tohe<-slpp$OneHotEncoder(categories='auto')
-    as.matrix(tohe$fit(x)$transform(x)) }
-tts<-function(X,y) {
-    slms$train_test_split(X,y,test_size=.2,
-                          random_state=ip(1))}
-
 idhtml('Data')
 idhtml('internal datasets',font_size=24)
 
@@ -306,66 +296,95 @@ legend(80,2,c('1->X','2->X mean','3->X median'),bty='n')
 
 source("sklearn_imputer.R")
 
-m<-sample(1:1700,1)
-cy2<-ohe(y2); c(cy2[m,],y2[m])
-cy_train6<-ohe(y_train6); c(cy_train6[m,],y_train6[m])
-cy_test6<-ohe(y_test6); c(cy_test6[m,],y_test6[m])
-cy7<-ohe(y7); c(cy7[m,],y7[m])
-
+conn<-file("sklearn_preprocess.R")
+writeLines("
+print('Data Preprocessing =>>>')
+ip<-function(x) {as.integer(x)}
+m<-sample(1:1700,1); N<-ip(5000)
+ohe<-function(x) {
+    x<-array_reshape(x,c(-1,1))
+    tohe<-slpp$OneHotEncoder(categories='auto')
+    as.matrix(tohe$fit(x)$transform(x)) }
+tts<-function(X,y) {
+    slms$train_test_split(
+        X,y,test_size=.2,random_state=ip(1))}
+cy2<-ohe(y2); cy7<-ohe(y7)
+print(paste0(c(cy2[m,],'=>',y2[m]),collapse=''))
+cy_train6<-ohe(y_train6)
+print(paste0(c(cy_train6[m,],'=>',y_train6[m]),collapse=''))
+cy_test6<-ohe(y_test6); 
+print(paste0(c(cy_test6[m,],'=>',y_test6[m]),collapse=''))
+print(paste0(c(cy7[m,],'=>',y7[m]),collapse=''))
 X_train1<-tts(X1,y1)[[1]]; X_test1<-tts(X1,y1)[[2]]
 y_train1<-tts(X1,y1)[[3]]; y_test1<-tts(X1,y1)[[4]]
-c(dim(X_train1),dim(y_train1),dim(X_test1),dim(y_test1))
+print(c('train:',dim(X_train1),dim(y_train1),
+        'test:',dim(X_test1),dim(y_test1)))
 X_train2<-tts(X2,y2)[[1]]; X_test2<-tts(X2,y2)[[2]]
 y_train2<-tts(X2,y2)[[3]]; y_test2<-tts(X2,y2)[[4]]
-c(dim(X_train2),dim(y_train2),dim(X_test2),dim(y_test2))
+print(c('train:',dim(X_train2),dim(y_train2),
+        'test:',dim(X_test2),dim(y_test2)))
 X_train7<-tts(X7,y7)[[1]]; X_test7<-tts(X7,y7)[[2]]
 y_train7<-tts(X7,y7)[[3]]; y_test7<-tts(X7,y7)[[4]]
-c(dim(X_train7),dim(y_train7),dim(X_test7),dim(y_test7))
+print(c('train:',dim(X_train7),dim(y_train7),
+        'test:',dim(X_test7),dim(y_test7)))
+",conn)
+
+source("sklearn_preprocess.R")
 
 idhtml('Classification')
 
+conn<-file("sklearn_classifiers.R")
+writeLines("
 clf<-slne$KNeighborsClassifier()
 clf$fit(X_train2,y_train2)    
 y_clf_train2<-clf$predict(X_train2)
 y_clf_test2<-clf$predict(X_test2)        
 acc_clf_train2<-slme$accuracy_score(y_train2,y_clf_train2)
 acc_clf_test2<-slme$accuracy_score(y_test2,y_clf_test2)
-c(acc_clf_train2,acc_clf_test2)
-#y_clf_test2
-
+print('KNeighbors =>>>')
+print(c(acc_clf_train2,acc_clf_test2))
 clf<-slen$GradientBoostingClassifier()
 clf$fit(X_train6[1:10000,],y_train6[1:10000])    
 y_clf_train6<-clf$predict(X_train6[1:10000,])
 y_clf_test6<-clf$predict(X_test6[1:2000,])        
-acc_clf_train6<-slme$accuracy_score(y_train6[1:10000],y_clf_train6)
-acc_clf_test6<-slme$accuracy_score(y_test6[1:2000],y_clf_test6)
-c(acc_clf_train6,acc_clf_test6)
-
+acc_clf_train6<-
+slme$accuracy_score(y_train6[1:10000],y_clf_train6)
+acc_clf_test6<-
+slme$accuracy_score(y_test6[1:2000],y_clf_test6)
+print('Gradient Boosting =>>>')
+print(c(acc_clf_train6,acc_clf_test6))
 clf<-slen$RandomForestClassifier()
 clf$fit(X_train7,y_train7)    
 y_clf_train7<-clf$predict(X_train7)
 y_clf_test7<-clf$predict(X_test7)        
 acc_clf_train7<-slme$accuracy_score(y_train7,y_clf_train7)
 acc_clf_test7<-slme$accuracy_score(y_test7,y_clf_test7)
-c(acc_clf_train7,acc_clf_test7)
+print('Random Forest =>>>')
+print(c(acc_clf_train7,acc_clf_test7))
+",conn)
+
+source("sklearn_classifiers.R")
 
 idhtml('Regression')
 
+conn<-file("sklearn_regressors.R")
+writeLines("
 reg1<-slen$GradientBoostingRegressor()
 reg1$fit(X_train1,y_train1)    
 y_reg_train11<-reg1$predict(X_train1)
 y_reg_test11<-reg1$predict(X_test1)        
 r2_reg_train11<-slme$r2_score(y_train1,y_reg_train11)
 r2_reg_test11<-slme$r2_score(y_test1,y_reg_test11)
-c(r2_reg_train11,r2_reg_test11)
+print('Gradient Boosting =>>>')
+print(c(r2_reg_train11,r2_reg_test11))
 reg2<-slne$KNeighborsRegressor()
 reg2$fit(X_train1,y_train1)    
 y_reg_train12<-reg2$predict(X_train1)
 y_reg_test12<-reg2$predict(X_test1)        
 r2_reg_train12<-slme$r2_score(y_train1,y_reg_train12)
 r2_reg_test12<-slme$r2_score(y_test1,y_reg_test12)
-c(r2_reg_train12,r2_reg_test12)
-
+print('KNeighbors =>>>')
+print(c(r2_reg_train12,r2_reg_test12))
 pl$figure(figsize=c(10,5)); k<-30
 pl$scatter(1:k,y_test1[1:k],marker='*',s=100,
            color='black',label='Real data')
@@ -373,18 +392,21 @@ pl$plot(1:k,y_reg_test11[1:k],lw=2,label='Gradient Boosting')
 pl$plot(1:k,y_reg_test12[1:k],lw=2,label='KNeighbors')
 pl$xlabel('Observations'); pl$ylabel('Targets')
 pl$title('Regressors. Test Results. Boston')
-pl$legend(loc=2,fontsize=10)
+pl$legend(loc=2,fontsize=10); pl$tight_layout()
 pl$savefig('rpy_p1.png'); im<-load.image('rpy_p1.png')
 options(repr.plot.width=10,repr.plot.height=5)
-par(mar=c(0,0,0,0)); plot(im,axes=F)
+par(mar=c(0,0,0,0)); plot(im,axes=FALSE)
+",conn)
+
+source("sklearn_regressors.R")
 
 idhtml('Interactive Py Practice')
 url<-paste0('https://olgabelitskaya.github.io/',
             'sklearn_cookbook_sagecells.html')
 html_str<-c('<div style="border:10px double white; ',
-    'width:680px; height:630px; overflow:auto; ',
+    'width:680px; height:640px; overflow:auto; ',
     'padding:5px; background-color:ghostwhite">',
     '<iframe src="',url,
-    '" width="650" height="600"/></div>')
+    '" width="640" height="600"/></div>')
 html_str<-(paste0(html_str,collapse=''))
 IRdisplay::display_html(html_str)
